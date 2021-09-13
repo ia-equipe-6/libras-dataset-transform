@@ -42,3 +42,6 @@ Utilize o código de normalização e treinamento
 Esse código utiliza as seguintes bibliotecas para conversão do dataset:
 
 * Pandas
+    ```cmd
+    pip install pandas
+    ```
