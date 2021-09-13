@@ -20,6 +20,7 @@ Esse código converte um dataset gerado frame by frame de vídeos de palavras em
 
 ## Converter Dataset
 
+1. Instale as [dependências](#Bibliotecas).
 1. Clone o repositório.
     ```cmd
     git clone https://github.com/ia-equipe-6/libras-dataset-transform.git
