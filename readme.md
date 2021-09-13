@@ -20,7 +20,7 @@ Esse código converte um dataset gerado frame by frame de vídeos de palavras em
 
 ## Converter Dataset
 
-1. Instale as [dependências](#Bibliotecas).
+1. Instale as [dependências](#Dependências).
 1. Clone o repositório.
     ```cmd
     git clone https://github.com/ia-equipe-6/libras-dataset-transform.git
@@ -38,9 +38,9 @@ A saída é um novo dataset chamado "libras_dataset.csv".
 Utilize o código de normalização e treinamento
 (Em Breve)
 
-## Bibliotecas
+## Dependências
 
-Esse código utiliza as seguintes bibliotecas para conversão do dataset:
+Esse código foi testado na versão 3.9 do [Python](https://www.python.org/downloads/) e utiliza as seguintes bibliotecas para conversão do dataset:
 
 * Pandas
     ```cmd
