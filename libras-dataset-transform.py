@@ -60,7 +60,7 @@ for video_key in videos_key:
 
         for parte_linha in nova_linha:
             if (parte_linha > 0):
-                linha_antiga = df_videos_key[df_videos_key["FRAME"] == parte_linha]
+                linha_antiga = df_videos_key[df_videos_key["FRAME"] == parte_linha]    
                 linha = linha + list(linha_antiga[colunas_parte].iloc[0])
             else:
                 #A Linha não existe, gera valores zerados
@@ -72,4 +72,5 @@ for video_key in videos_key:
 #Salva Dataset
 df_final = pd.DataFrame(linhas, columns=colunas)
 print(df_final.columns)
+print(df_final.shape)
 df_final.to_csv(ARQUIVO_SAIDA, index=False)
