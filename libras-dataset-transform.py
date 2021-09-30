@@ -2,8 +2,9 @@ import pandas as pd
 
 TEMPO = 1 #Tempo de análise, 1 = 1 segundo.
 PARTES = 4 # Partes divido por tempo acima. 4 partes é um para cada 0.20 segundo.
+TRACK_MODE = True
 ARQUIVO_ENTRADA = "words_dataset.csv"
-ARQUIVO_SAIDA = "libras_dataset.csv"
+ARQUIVO_SAIDA = "libras_dataset_track.csv" if TRACK_MODE else "libras_dataset.csv"
 
 #Carrega dataset de frame
 df_orig = pd.read_csv(ARQUIVO_ENTRADA)
@@ -11,6 +12,21 @@ df_orig = pd.read_csv(ARQUIVO_ENTRADA)
 #Obtem todos os IDs únicos
 videos_key = pd.unique(df_orig["ID"])
 linhas = list()
+
+def trackModeProcess(frameAnterior: list, frameAtual: list) -> list:
+    size = len(frameAnterior)
+    trackList = list()
+
+    for pos in range(0, size):
+        if (frameAnterior[pos] == 0.0 or frameAtual[pos] == 0.0):
+            trackList.append(0.0)
+        else:
+            trackList.append(frameAnterior[pos] - frameAtual[pos])
+
+    if (len(trackList) != size or len(trackList) != len(frameAtual)):
+        print("Como assim?")
+
+    return trackList
 
 #Faz processo por ID, onde cada ID representa todos os frames de um único vídeo.
 for video_key in videos_key:
@@ -57,11 +73,19 @@ for video_key in videos_key:
     for nova_linha in novas_linhas:
         linha = list()
         linha.append(word)
+        frameRef = None
 
         for parte_linha in nova_linha:
             if (parte_linha > 0):
                 linha_antiga = df_videos_key[df_videos_key["FRAME"] == parte_linha]    
-                linha = linha + list(linha_antiga[colunas_parte].iloc[0])
+                frameAtual = list(linha_antiga[colunas_parte].iloc[0])
+
+                if (TRACK_MODE and frameRef != None):
+                    linha = linha + trackModeProcess(frameRef, frameAtual)
+                else:
+                    linha = linha + frameAtual
+
+                frameRef = frameAtual
             else:
                 #A Linha não existe, gera valores zerados
                 linha_vazia = [0.0 for i in range(len(colunas_parte))]
