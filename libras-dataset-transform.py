@@ -1,10 +1,13 @@
 import pandas as pd
 
-TEMPO = 1 #Tempo de análise, 1 = 1 segundo.
-PARTES = 4 # Partes divido por tempo acima. 4 partes é um para cada 0.20 segundo.
-TRACK_MODE = True
+TEMPO = 1.2 #Tempo de análise, 1 = 1 segundo.
+PARTES = 5 # Partes divido por tempo acima. 4 partes é um para cada 0.20 segundo.
+POSE_MODE = True
+TRACK_MODE = False
+TRACK_SIMPLE = False
 ARQUIVO_ENTRADA = "words_dataset.csv"
-ARQUIVO_SAIDA = "libras_dataset_track.csv" if TRACK_MODE else "libras_dataset.csv"
+ARQUIVO_SAIDA = "libras_dataset.csv"
+#ARQUIVO_SAIDA = "libras_dataset_track.csv" if TRACK_MODE else "libras_dataset.csv"
 
 #Carrega dataset de frame
 df_orig = pd.read_csv(ARQUIVO_ENTRADA)
@@ -21,7 +24,16 @@ def trackModeProcess(frameAnterior: list, frameAtual: list) -> list:
         if (frameAnterior[pos] == 0.0 or frameAtual[pos] == 0.0):
             trackList.append(0.0)
         else:
-            trackList.append(frameAnterior[pos] - frameAtual[pos])
+            if (TRACK_SIMPLE):
+                diff = frameAnterior[pos] - frameAtual[pos]
+                if (diff > 0.001):
+                    trackList.append(1.0)
+                elif (diff < -0.001):
+                    trackList.append(-1.0)
+                else:
+                    trackList.append(0.0)
+            else:
+                trackList.append(frameAnterior[pos] - frameAtual[pos])
 
     if (len(trackList) != size or len(trackList) != len(frameAtual)):
         print("Como assim?")
@@ -63,9 +75,16 @@ for video_key in videos_key:
     colunas = [c for c in colunas_parte]
 
     #Cria as colunas dos outros tempos
-    for parte in range(1, PARTES):
-        colunasMX = [c + "_T-" + str(parte) for c in colunas_parte]
-        colunas = colunas + colunasMX
+
+    if (POSE_MODE):
+        for parte in range(1, PARTES):
+            colunasMX = [c + "_F-" + str(parte) for c in colunas_parte]
+            colunas = colunas + colunasMX
+
+    if (TRACK_MODE):
+        for parte in range(1, PARTES):
+            colunasTC = [c + "_T-" + str(parte) for c in colunas_parte]
+            colunas = colunas + colunasTC
 
     colunas = ['WORD'] + colunas
 
@@ -75,14 +94,18 @@ for video_key in videos_key:
         linha.append(word)
         frameRef = None
 
+        poseList = list()
+        trackList = list()
+
         for parte_linha in nova_linha:
             if (parte_linha > 0):
                 linha_antiga = df_videos_key[df_videos_key["FRAME"] == parte_linha]    
                 frameAtual = list(linha_antiga[colunas_parte].iloc[0])
 
                 if (TRACK_MODE and frameRef != None):
-                    linha = linha + trackModeProcess(frameRef, frameAtual)
-                else:
+                    poseList = poseList + trackModeProcess(frameRef, frameAtual)
+                
+                if (POSE_MODE or frameRef == None):
                     linha = linha + frameAtual
 
                 frameRef = frameAtual
@@ -91,10 +114,12 @@ for video_key in videos_key:
                 linha_vazia = [0.0 for i in range(len(colunas_parte))]
                 linha = linha + linha_vazia
 
+        linha = linha + poseList
         linhas.append(linha)
 
 #Salva Dataset
 df_final = pd.DataFrame(linhas, columns=colunas)
 print(df_final.columns)
 print(df_final.shape)
+print(len(colunas))
 df_final.to_csv(ARQUIVO_SAIDA, index=False)
